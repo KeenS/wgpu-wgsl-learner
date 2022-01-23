@@ -98,6 +98,26 @@ fn main() {
     };
     surface.configure(&device, &config);
 
+    let v_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+        label: Some("Vertex Shader"),
+        source: wgpu::ShaderSource::Glsl {
+            shader: "layout(location=0) in vec3 p;void main(){gl_Position=vec4(p,1.);}".into(),
+            stage: ShaderStage::Vertex,
+            /// Defines to unlock configured shader features
+            defines: FastHashMap::default(),
+        },
+    });
+
+    let f_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
+        label: Some("Fragment Shader"),
+        source: wgpu::ShaderSource::Glsl {
+            shader: include_str!("shader.frag").into(),
+            stage: ShaderStage::Fragment,
+            /// Defines to unlock configured shader features
+            defines: FastHashMap::default(),
+        },
+    });
+
     let t = TimeUniform { t: 0.0 };
     let time_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
         label: Some("Time Buffer"),
@@ -129,25 +149,6 @@ fn main() {
             binding: 0,
             resource: resolution_buffer.as_entire_binding(),
         }],
-    });
-    let v_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-        label: Some("Vertex Shader"),
-        source: wgpu::ShaderSource::Glsl {
-            shader: "layout(location=0) in vec3 p;void main(){gl_Position=vec4(p,1.);}".into(),
-            stage: ShaderStage::Vertex,
-            /// Defines to unlock configured shader features
-            defines: FastHashMap::default(),
-        },
-    });
-
-    let f_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
-        label: Some("Fragment Shader"),
-        source: wgpu::ShaderSource::Glsl {
-            shader: include_str!("shader.glsl").into(),
-            stage: ShaderStage::Fragment,
-            /// Defines to unlock configured shader features
-            defines: FastHashMap::default(),
-        },
     });
 
     let vertex: [f32; 12] = [
@@ -238,7 +239,7 @@ fn main() {
         },
         Event::RedrawRequested(window_id) if window_id == window.id() => {
             let now = Instant::now();
-            let t = (now - start).as_millis() as f32;
+            let t = ((now - start).as_millis() as f32) / 1000.0;
             queue.write_buffer(&time_buffer, 0, bytemuck::cast_slice(&[TimeUniform { t }]));
             let output = surface.get_current_texture().unwrap();
             let view = output
