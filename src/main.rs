@@ -1,4 +1,4 @@
-use std::{mem, time::Instant};
+use std::{env, fs, mem, time::Instant};
 
 use naga::{FastHashMap, ShaderStage};
 use wgpu::{
@@ -64,6 +64,23 @@ impl ResolutionUniform {
 
 fn main() {
     env_logger::init();
+    let shader_source = env::args().nth(1).unwrap();
+
+    let shader = if shader_source.ends_with(".frag") {
+        let source = fs::read_to_string(shader_source).unwrap();
+        wgpu::ShaderSource::Glsl {
+            shader: source.into(),
+            stage: ShaderStage::Fragment,
+            /// Defines to unlock configured shader features
+            defines: FastHashMap::default(),
+        }
+    } else if shader_source.ends_with(".wgsl") {
+        let source = fs::read_to_string(shader_source).unwrap();
+        wgpu::ShaderSource::Wgsl(source.into())
+    } else {
+        panic!("unknown shader type {}", shader_source)
+    };
+
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
         .with_inner_size(PhysicalSize::new(512, 512))
@@ -110,12 +127,7 @@ fn main() {
 
     let f_shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
         label: Some("Fragment Shader"),
-        source: wgpu::ShaderSource::Glsl {
-            shader: include_str!("shader.frag").into(),
-            stage: ShaderStage::Fragment,
-            /// Defines to unlock configured shader features
-            defines: FastHashMap::default(),
-        },
+        source: shader,
     });
 
     let t = TimeUniform { t: 0.0 };
