@@ -15,7 +15,7 @@ var<uniform> time: Time;
 var<uniform> resolution: Resolution;
 
 fn mod(d: f32, m: f32) -> f32 {
-    return d - floor(d/m);
+    return d - m * floor(d/m);
 }
 
 fn hsv(h: f32, s: f32, v: f32) -> vec3<f32> {
