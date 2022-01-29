@@ -8,10 +8,10 @@ struct Resolution {
 };
 
 
-[[group(0), binding(0)]]
+@group(0) @binding(0)
 var<uniform> time: Time;
 
-[[group(1), binding(0)]]
+@group(1) @binding(0)
 var<uniform> resolution: Resolution;
 
 fn mod(d: f32, m: f32) -> f32 {
@@ -24,8 +24,8 @@ fn hsv(h: f32, s: f32, v: f32) -> vec3<f32> {
     return v * mix(vec3<f32>(t.x), clamp(p - vec3<f32>(t.x), vec3<f32>(0.0), vec3<f32>(1.0)), s);
 }
 
-[[stage(fragment)]]
-fn main([[builtin(position)]] FragCoord : vec4<f32>) -> [[location(0)]] vec4<f32> {
+@stage(fragment)
+fn main(@builtin(position) FragCoord : vec4<f32>) -> @location(0) vec4<f32> {
     let r = resolution.r;
     let p = (FragCoord.xy * 2.0 - r) / min(r.x, r.y);
     var j = 0;
